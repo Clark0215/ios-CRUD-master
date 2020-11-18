@@ -1,0 +1,82 @@
+//
+//  CircleChart.swift
+//  kangwei
+//
+//  Created by Customer on 2019/12/1.
+//  Copyright © 2019 kangwei. All rights reserved.
+//
+
+import SwiftUI
+
+struct CircleChart: View {
+    var eventsData : EventsData
+    var percentages : [Double]
+    var degree : [CGFloat]
+    var types = ["吃飯","衣服","住","交通","娛樂","寵物","雜費"]
+    var colors : [Color]
+    var totalSpend : Int = 0
+    init(eventsData : EventsData){
+        self.eventsData = eventsData
+        if eventsData.events.count == 0{
+            colors = [Color.white,Color.white,Color.white,Color.white,Color.white,Color.white,Color.white]
+            percentages = [1.0]
+            degree = [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+        }
+        else{
+            percentages = [0.0,0.0,0.0,0.0,0.0,0.0,0.0]
+            colors = [Color.blue,Color.red,Color.yellow,Color.green,Color.orange,Color.purple,Color.gray]
+            for event in self.eventsData.events{
+                totalSpend += event.time;
+                for index in 0...6{
+                    if(types[index] == event.type){
+                        percentages[index] += Double(event.time)
+                    }
+                }
+            }
+            for index in 0...6{
+                percentages[index] /= Double(totalSpend)
+            }
+            degree = [0.0,CGFloat(percentages[0])]
+            for index in 2...6{
+                degree.append(CGFloat(percentages[index-1]) + degree[index-1])
+            }
+        }
+    }
+    var body: some View {
+        ZStack{
+            ForEach(degree.indices){ (index) in
+                circleView(index:index,degree:self.degree,colors: self.colors)
+            }
+            Text("total spend : $NT \(totalSpend)")
+                .fontWeight(.bold)
+                .foregroundColor(.white)
+        }.frame(width :250,height: 250)
+    }
+}
+
+struct CircleChart_Previews: PreviewProvider {
+    static var previews: some View {
+        CircleChart(eventsData: EventsData())
+    }
+}
+
+
+struct circleView: View {
+    var index : Int
+    var degree : [CGFloat]
+    var colors : [Color]
+    var body: some View {
+        VStack{
+            if index == (self.degree.count-1){
+                Circle()
+                    .trim(from: self.degree[index], to:1)
+                    .stroke(self.colors[index],lineWidth: CGFloat(30))
+            }
+            else{
+                Circle()
+                    .trim(from: self.degree[index], to:self.degree[index+1])
+                    .stroke(self.colors[index],lineWidth: CGFloat(30))
+            }
+        }
+    }
+}
